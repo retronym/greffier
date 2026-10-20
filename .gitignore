@@ -1,0 +1,16 @@
+# recordings and per-version compiler workspaces produced by the server
+server/recordings/
+server/versions/
+# viewer data (symlink or copies of recordings) and generated index
+viewer/data
+viewer/data-jvm
+viewer/recordings.json
+# deploy outputs
+deploy/site/
+deploy/r2/
+# build outputs
+recorder/**/target/
+recorder/**/classes*/
+recorder/scala3/plugin/compiler.classpath
+__pycache__/
+.DS_Store

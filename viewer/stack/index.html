@@ -1,0 +1,8 @@
+<!doctype html>
+<meta charset="utf-8"><title>Greffier stack</title>
+<!-- The stack is now an overlay mode of the main viewer (ui/js/stack/*.js, key "s"). This page just opens the viewer with it.
+     The original standalone proof of concept is kept as poc.html (it has its own copy of the model code in js/). -->
+<script>
+const q = new URLSearchParams(location.search), src = q.get('src') || '../data/Givens.jsonl';
+location.replace('../index.html#src=' + encodeURIComponent(src.replace(/^\.\.\//, '')).replace(/%2F/g, '/') + '&skip=1&stack=1');
+</script>
