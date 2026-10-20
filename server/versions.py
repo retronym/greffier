@@ -42,7 +42,18 @@ VERSIONS = os.path.join(HERE, 'versions')
 COURSIER = os.environ.get('COURSIER') or ('coursier' if shutil.which('coursier') else 'cs')
 NIGHTLY_REPO = 'https://repo.scala-lang.org/artifactory/maven-nightlies/'
 SCALA3 = re.compile(r'3\.\d+\.\d+(-RC\d+)?(-bin-\d{8}-[0-9a-f]{7,40}-NIGHTLY)?')
-JAVA_HOME = os.environ.get('JAVA_HOME_REPLAY', os.path.expanduser('~/.sdkman/candidates/java/21.0.12+1.1-tem'))
+def _java_home():
+    """JAVA_HOME_REPLAY, else JAVA_HOME, else the JDK the OS reports; a JDK 17+ with javac is required."""
+    for v in (os.environ.get('JAVA_HOME_REPLAY'), os.environ.get('JAVA_HOME')):
+        if v: return v
+    try:
+        out = subprocess.run(['/usr/libexec/java_home'], capture_output=True, text=True).stdout.strip()
+        if out: return out
+    except OSError: pass
+    j = shutil.which('javac')
+    if j: return os.path.dirname(os.path.dirname(os.path.realpath(j)))
+    sys.exit('greffier: no JDK found; set JAVA_HOME_REPLAY (or JAVA_HOME) to a JDK 17+ with javac')
+JAVA_HOME = _java_home()
 JAVA = os.path.join(JAVA_HOME, 'bin', 'java')
 BB_VERSION = '1.17.5'
 # Agent options for every compile. `research` lifts the research-plugin gate on released compilers;

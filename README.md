@@ -10,6 +10,24 @@ Supported compilers: Scala 3.3 LTS, 3.7, 3.10 and nightlies (the recorder runs o
 
 This is a proof of concept written with LLM assistance throughout (Claude, via sessions managed by the author). It is not an official Scala project.
 
+## Screenshots
+
+The phase scrubber, explorer with chapter paging, event inspector and dependencies panel on `dotc/util`:
+
+![viewer](docs/images/r3-explorer.png)
+
+Implicit search for `List(1, 2, 3).shown`, the chosen candidate and the nested search for its `using` argument:
+
+![implicit search](docs/images/m-givens-implicit.png)
+
+A method's control-flow graph at the inliner step, with the listing beside it and the phase navigation still live:
+
+![cfg](docs/images/cfg-demo.png)
+
+The stack view: one expression traced from the parser through typer, erasure and lambdaLift into its bytecode range:
+
+![stack](docs/images/stack-trace-bytecode.png)
+
 ## Layout
 
 | path | what |
@@ -27,13 +45,28 @@ This is a proof of concept written with LLM assistance throughout (Claude, via s
 
 ## Running it
 
+Requirements:
+- Python 3.9+ (the server and scripts use the standard library only).
+- A JDK 17 or newer with `javac`. The server uses `JAVA_HOME_REPLAY`, else `JAVA_HOME`, else what `/usr/libexec/java_home` or `javac` on the PATH points at.
+- [coursier](https://get-coursier.io/) (`cs` or `coursier` on the PATH, or `COURSIER=<path>`), which fetches the compilers and Byte Buddy. No sbt and no Scala installation are needed; the recorder is compiled by the fetched compiler itself.
+- For the demo deploy only: Node (for `npx wrangler`) and a Cloudflare account.
+
+Configuration is by environment variable; there is no config file.
+
+| variable | default | meaning |
+|---|---|---|
+| `JAVA_HOME_REPLAY` / `JAVA_HOME` | the OS's JDK | JDK used to build the recorder and run compiles |
+| `COURSIER` | `coursier` or `cs` | coursier launcher |
+| `GREFFIER_TIMEOUT_S` | `120` | per-compile timeout |
+| `REPLAY_AGENT_OPTS` | `fixTypeApply,rejected,tentative,research` | agent options the server passes (see `docs/REPORT-agent.md`) |
+
 Record and view locally:
 
 ```bash
 python3 server/server.py --ui viewer
 ```
 
-then open http://127.0.0.1:8777/, press `c`, pick a version, compile. The first compile for a version fetches that compiler and builds the recorder for it (about a minute). See `server/README.md` for the API and for adding a version.
+then open http://127.0.0.1:8777/ (`--port`, `--host` to change), press `c`, pick a version, compile. The first compile for a version fetches that compiler and builds the recorder for it (10 s to a couple of minutes, cached under `server/versions/`). Versions can also be prepared ahead: `python3 server/versions.py setup 3.7.4`, `setup 2.13.18`, `setup nightly`. The API, limits and workspace layout are in `server/README.md`.
 
 Only view existing recordings:
 
@@ -41,9 +74,9 @@ Only view existing recordings:
 python3 -m http.server 8766 --directory viewer
 ```
 
-with recordings in `viewer/data/` and `python3 viewer/gen_index.py data` run once to list them.
+with recordings in `viewer/data/` and `python3 viewer/gen_index.py data` run once to list them. Recordings are also made without the server by `server/client.py` or, for development against a scala3 checkout, by the scripts in `recorder/scala3/plugin` (`env.sh` documents `REPLAY_COMPILER_CLASSPATH`, `REPLAY_STOCK_CLASSES`, `REPLAY_COMPILER_CLASSES`).
 
-Deploy the demo: `deploy/build.sh --deploy` after `wrangler login`; see `deploy/wrangler.toml`.
+Deploy the demo: `wrangler login`, set the hostname in `deploy/wrangler.toml`, then `deploy/build.sh --deploy` (`--upload` as well once R2 is enabled, for recordings over 25 MiB).
 
 ## Status
 
