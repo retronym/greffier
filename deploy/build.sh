@@ -74,8 +74,8 @@ if [ -d "$STACK" ]; then
   mkdir -p "$SITE/stack"
   cp "$STACK/index.html" "$SITE/stack/"; [ -f "$STACK/NOTES.md" ] && cp "$STACK/NOTES.md" "$SITE/stack/"; [ -d "$STACK/js" ] && cp -R "$STACK/js" "$SITE/stack/js" || true
   sed -i '' 's|src="../ui/js/loader.js"|src="../js/loader.js"|' "$SITE/stack/index.html"
-  givens=$(ls "$SITE/data" | grep -E '^Givens\.[0-9a-f]{8}\.jsonl$' | head -1)
-  sed -i '' "s|'../data/Givens.jsonl'|'../data/$givens'|" "$SITE/stack/js/main.js"
+  givens=$(ls "$SITE/data" | grep -E '^Givens\.[0-9a-f]{8}\.jsonl$' | head -1 || true)
+  [ -n "$givens" ] && [ -f "$SITE/stack/js/main.js" ] && sed -i '' "s|'../data/Givens.jsonl'|'../data/$givens'|" "$SITE/stack/js/main.js" || true
 fi
 
 echo "site: $(du -sh "$SITE" | cut -f1); r2 objects: $(wc -l < "$HERE/r2/manifest.txt")"
